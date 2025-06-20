@@ -1,0 +1,6 @@
+scikit-learn
+bentoml==1.0.25
+pandas
+mlflow
+scipy
+numpy   

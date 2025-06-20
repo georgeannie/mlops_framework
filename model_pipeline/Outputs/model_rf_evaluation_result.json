@@ -1,0 +1,17 @@
+{
+  "model_name": "model_rf",
+  "evaluated_run_id": "fd4c4bc5-64c5-4b54-947d-1f10b6d51124",
+  "accepted": true,
+  "actual_metrics": {
+    "accuracy": 0.85,
+    "precision": 0.7821782178217822,
+    "recall": 0.9080459770114943,
+    "f1_score": 0.8404255319148937
+  },
+  "expected_thresholds": {
+    "accuracy": 0.76,
+    "precision": 0.73,
+    "recall": 0.71,
+    "f1_score": 0.72
+  }
+}

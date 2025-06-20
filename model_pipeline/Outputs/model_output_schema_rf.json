@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "prediction": {
+      "type": "number",
+      "description": "Predicted value"
+    }
+  },
+  "required": [
+    "prediction"
+  ]
+}

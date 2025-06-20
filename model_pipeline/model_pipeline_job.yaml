@@ -1,0 +1,76 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+description: Parallel train/validate/register for RF and LR models with quality gating.
+
+compute: azureml:cpu-cluster
+
+jobs:
+  train_rf:
+    type: command
+    code: .
+    command: >-
+      python train_rf.py
+    environment: azureml:AzureML-sklearn-1.1-ubuntu20.04-py38-cpu:1
+    outputs:
+      rf_run_id: rf_run_id.txt
+      X_test_rf: X_test_rf.csv
+      y_test_rf: y_test_rf.csv
+
+  train_lr:
+    type: command
+    code: .
+    command: >-
+      python train_lr.py
+    environment: azureml:AzureML-sklearn-1.1-ubuntu20.04-py38-cpu:1
+    outputs:
+      lr_run_id: lr_run_id.txt
+      X_test_lr: X_test_lr.csv
+      y_test_lr: y_test_lr.csv
+
+  validate_rf:
+    type: command
+    code: .
+    command: >-
+      python validate_model.py ${{inputs.run_id}} ${{inputs.X_test}} ${{inputs.y_test}} rf_register.flag rf_metrics.json
+    environment: azureml:AzureML-sklearn-1.1-ubuntu20.04-py38-cpu:1
+    inputs:
+      run_id: ${{parent.jobs.train_rf.outputs.rf_run_id}}
+      X_test: ${{parent.jobs.train_rf.outputs.X_test_rf}}
+      y_test: ${{parent.jobs.train_rf.outputs.y_test_rf}}
+    outputs:
+      rf_flag: rf_register.flag
+      rf_metrics: rf_metrics.json
+
+  validate_lr:
+    type: command
+    code: .
+    command: >-
+      python validate_model.py ${{inputs.run_id}} ${{inputs.X_test}} ${{inputs.y_test}} lr_register.flag lr_metrics.json
+    environment: azureml:AzureML-sklearn-1.1-ubuntu20.04-py38-cpu:1
+    inputs:
+      run_id: ${{parent.jobs.train_lr.outputs.lr_run_id}}
+      X_test: ${{parent.jobs.train_lr.outputs.X_test_lr}}
+      y_test: ${{parent.jobs.train_lr.outputs.y_test_lr}}
+    outputs:
+      lr_flag: lr_register.flag
+      lr_metrics: lr_metrics.json
+
+  register_rf:
+    type: command
+    code: .
+    command: >-
+      python register_model.py ${{inputs.run_id}} ${{inputs.flag_file}} RandomForestModel
+    environment: azureml:AzureML-sklearn-1.1-ubuntu20.04-py38-cpu:1
+    inputs:
+      run_id: ${{parent.jobs.train_rf.outputs.rf_run_id}}
+      flag_file: ${{parent.jobs.validate_rf.outputs.rf_flag}}
+
+  register_lr:
+    type: command
+    code: .
+    command: >-
+      python register_model.py ${{inputs.run_id}} ${{inputs.flag_file}} LogisticRegressionModel
+    environment: azureml:AzureML-sklearn-1.1-ubuntu20.04-py38-cpu:1
+    inputs:
+      run_id: ${{parent.jobs.train_lr.outputs.lr_run_id}}
+      flag_file: ${{parent.jobs.validate_lr.outputs.lr_flag}}

@@ -1,0 +1,46 @@
+name: Train ML Model with MLflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'data/**'
+      - '.github/workflows/train_model.yml'
+
+jobs:
+  train_model:
+    runs-on: ubuntu-latest
+
+    env:
+      MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+      TRAINING_DATA_PATH: './data/train_data.csv'
+      TARGET_COLUMN: 'target'
+      EXPERIMENT_NAME: 'Logistic_Regression_Training'
+      RUN_NAME: 'lr_training'
+      OUTPUT_DIR: './output'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Train model and log to MLflow
+        run: |
+          python src/train_model.py
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: model-outputs
+          path: output/
