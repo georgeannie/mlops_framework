@@ -1,0 +1,29 @@
+$$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+experiment_name: mlops_pipeline
+
+inputs:
+  config_path:
+    type: string
+
+jobs:
+  train:
+    type: command
+    component: ${train_model_component_id}
+    compute: ${{parent.inputs.compute_target}}
+    inputs:
+      config_path: ${{parent.inputs.config_path}}
+ 
+  validate:
+    type: command
+    component: ${validate_model_component_id}
+    compute: ${{parent.inputs.compute_target}}
+    inputs:
+      config_path: ${{parent.inputs.config_path}}
+      
+  register:
+    type: command
+    component: ${register_model_component_id}
+    compute: ${{parent.inputs.compute_target}}
+    inputs:
+      config_path: ${{parent.inputs.config_path}}

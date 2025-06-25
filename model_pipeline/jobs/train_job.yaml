@@ -1,46 +1,19 @@
-name: Train ML Model with MLflow
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+type: command
+name: train_model
+version: 1
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'data/**'
-      - '.github/workflows/train_model.yml'
+display_name: Train Logistic Regression
+code: ../scripts
+command: >-
+  python train_lr.py --config_path ${{inputs.config_path}}
 
-jobs:
-  train_model:
-    runs-on: ubuntu-latest
+inputs:
+  config_path:
+    type: uri_file
 
-    env:
-      MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
-      TRAINING_DATA_PATH: './data/train_data.csv'
-      TARGET_COLUMN: 'target'
-      EXPERIMENT_NAME: 'Logistic_Regression_Training'
-      RUN_NAME: 'lr_training'
-      OUTPUT_DIR: './output'
+environment:
+  conda_file: ../env/conda.yaml
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Train model and log to MLflow
-        run: |
-          python src/train_model.py
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: model-outputs
-          path: output/
+description: "Reusable component for training LR"

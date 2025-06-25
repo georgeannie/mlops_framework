@@ -1,0 +1,19 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+type: command
+name: register_model
+version: 1
+
+display_name: Register Model
+code: ../scripts
+command: >-
+  python register_model.py --config ${{inputs.config_path}}
+
+inputs:
+  config_path:
+    type: string
+
+environment:
+  conda_file: ../env/conda.yaml
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
+
+description: "Reusable component for registering model"
